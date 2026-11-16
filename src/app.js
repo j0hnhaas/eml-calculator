@@ -41,7 +41,22 @@ function storedLang() {
   try { return localStorage.getItem('eml-lang'); } catch { return null; }
 }
 
-function applyLang(next) {
+/** Language requested in the URL (?lang=de|en), if valid. */
+function urlLang() {
+  const v = (new URLSearchParams(location.search).get('lang') || '').toLowerCase();
+  return STRINGS[v] ? v : null;
+}
+
+/** Keep the chosen language in the address bar (other parameters such as ?q= are preserved). */
+function syncUrl() {
+  try {
+    const u = new URL(location.href);
+    u.searchParams.set('lang', lang);
+    history.replaceState(history.state, '', u);
+  } catch { /* e.g. sandboxed or file: contexts */ }
+}
+
+function applyLang(next, persist = false) {
   lang = STRINGS[next] ? next : 'en';
   t = makeT(lang);
   document.documentElement.lang = lang;
@@ -55,7 +70,10 @@ function applyLang(next) {
   $('linkPaper').href = LINKS.paper;
   $('linkVideo').href = LINKS.video;
   $('linkRepo').href = LINKS.repo;
-  try { localStorage.setItem('eml-lang', lang); } catch { /* storage may be unavailable */ }
+  if (persist) {
+    try { localStorage.setItem('eml-lang', lang); } catch { /* storage may be unavailable */ }
+  }
+  syncUrl();
   renderStatic();
   renderLcd();
   renderNote();
@@ -346,10 +364,11 @@ function init() {
   el.lcd.addEventListener('click', skipAnim);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') skipAnim(); });
   for (const b of document.querySelectorAll('.lang-btn')) {
-    b.addEventListener('click', () => applyLang(b.dataset.lang));
+    b.addEventListener('click', () => applyLang(b.dataset.lang, true));
   }
 
-  applyLang(storedLang() || detectLang());
+  // priority: URL (shared link) > saved choice > browser language
+  applyLang(urlLang() || storedLang() || detectLang());
 
   // deep link: ?q=3%2B4
   const q = new URLSearchParams(location.search).get('q');

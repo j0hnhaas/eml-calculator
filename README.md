@@ -39,6 +39,15 @@ x ^ y  = exp(y · ln x)
 
 Die Auswertung läuft in komplexer Arithmetik (Hauptwert) mit `ln 0 = −∞`. Extrem große oder kleine Zwischenwerte (`exp(y)` in der Subtraktion!) werden logarithmisch weitergeführt, damit nichts überläuft. Zur Kontrolle wird jede Aufgabe zusätzlich gewöhnlich gerechnet und verglichen.
 
+## URL-Parameter
+
+| Parameter | Wirkung / Effect |
+|-----------|------------------|
+| `?lang=de` / `?lang=en` | Sprache / language (wird beim Umschalten automatisch in die URL geschrieben) |
+| `?q=2%5E10` | Aufgabe direkt rechnen / run a sum on load |
+
+Beispiel: https://j0hnhaas.github.io/eml-calculator/?lang=en&q=12*(5-2)
+
 ## Entwicklung / Development
 
 Kein Build-Schritt, reine statische Dateien (ES-Module).
