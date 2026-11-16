@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  parse, compile, calculate, runProgram, formatResult, stats, EmlError, EmlMachine, cleanResult,
+  parse, compile, compileSpans, SPAN_TAGS, calculate, runProgram, formatResult, stats, EmlError, EmlMachine, cleanResult,
 } from '../src/eml.js';
 
 const val = (src) => {
@@ -179,4 +179,19 @@ test('fuzz: EML evaluation agrees with ordinary evaluation', () => {
 test('cleanResult snaps noise to zero', () => {
   assert.equal(cleanResult([4e-16, 0]).re, 0);
   assert.equal(cleanResult([3, 1e-15]).kind, 'real');
+});
+
+test('colour runs: they spell the program exactly and use known tags', () => {
+  const srcs = ['1', '3+4', '2^10', '1/3', '-5', '12*(5-2)', 'ln(e^3)', '(-8)^(1/3)', 'exp(2)/ln(7)', '2.5*4-1', 'e^(3+1)'];
+  for (const src of srcs) {
+    const spans = compileSpans(src);
+    assert.equal(spans.map((r) => r[1]).join(''), compile(src), src);
+    for (const [tag] of spans) assert.ok(SPAN_TAGS.includes(tag), `${src}: ${tag}`);
+  }
+  const tags = new Set(compileSpans('3+4*2').map((r) => r[0]));
+  assert.ok(tags.has('add') && tags.has('mul') && tags.has('num'));
+  assert.equal(calculate('3+4').spans.map((r) => r[1]).join(''), calculate('3+4').program);
+  const long = calculate(Array(60).fill('987654321098').join('*'));
+  assert.ok(long.program.length > 20000);
+  assert.equal(long.spans, null);
 });

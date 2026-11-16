@@ -337,6 +337,71 @@ export function compile(input) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Tagged compilation: the same program, split into runs by operation  */
+/* ------------------------------------------------------------------ */
+
+/** Programs up to this length also get their colour runs (see compileSpans). */
+export const SPAN_LIMIT = 20000;
+
+/** Tags of the runs: the operation a piece of the program belongs to. */
+export const SPAN_TAGS = ['num', 'add', 'sub', 'mul', 'div', 'pow', 'exp', 'ln'];
+
+const T = (tag, str) => [[tag, str]];
+const cat = (...parts) => parts.flat();
+const sEXP = (a, g) => cat(a, T(g, '1E'));
+const sLN = (a, g) => cat(T(g, '11'), a, T(g, 'E1EE'));
+const sSUB = (a, b, g) => cat(sLN(a, g), sEXP(b, g), T(g, 'E'));
+const sNEG = (b, g) => cat(T(g, MINF), sEXP(b, g), T(g, 'E'));
+const sADD = (a, b, g) => sSUB(a, sNEG(b, g), g);
+const sINV = (b, g) => cat(T(g, MINF), b, T(g, 'E1E'));
+const sDIV = (a, b, g) => cat(sLN(sLN(a, g), g), b, T(g, 'E1E'));
+const sMUL = (a, b, g) => sDIV(a, sINV(b, g), g);
+
+function spanNode(n) {
+  switch (n.k) {
+    case 'num': {
+      const [p, q] = toFraction(n.v);
+      if (p === 0) return T('num', ZERO);
+      if (q === 1) return T('num', intStr(p));
+      if (p === 1) return T('num', INV(intStr(q)));
+      return T('num', DIV(intStr(p), intStr(q)));
+    }
+    case 'e': return T('num', EULER);
+    case 'neg': return sNEG(spanNode(n.a), 'sub');
+    case 'fn': return n.f === 'ln' ? sLN(spanNode(n.a), 'ln') : sEXP(spanNode(n.a), 'exp');
+    case 'bin': {
+      if (n.op === '^' && n.a.k === 'e') return sEXP(spanNode(n.b), 'exp');
+      const a = spanNode(n.a);
+      const b = spanNode(n.b);
+      switch (n.op) {
+        case '+': return sADD(a, b, 'add');
+        case '-': return sSUB(a, b, 'sub');
+        case '*': return sMUL(a, b, 'mul');
+        case '/': return sDIV(a, b, 'div');
+        case '^': return sEXP(sMUL(b, sLN(a, 'pow'), 'pow'), 'pow');
+      }
+    }
+  }
+  throw new EmlError('internal');
+}
+
+/**
+ * The program of compile(), as runs [tag, text]: which operation each piece belongs to.
+ * An operation owns the keys it adds around its operands; the operands keep their own tag.
+ * Joining all texts gives exactly compile(input). Only meant for programs up to SPAN_LIMIT.
+ */
+export function compileSpans(input) {
+  const ast = typeof input === 'string' ? parse(input) : input;
+  const out = [];
+  for (const [tag, str] of spanNode(ast)) {
+    const last = out[out.length - 1];
+    if (last && last[0] === tag) last[1] += str;
+    else out.push([tag, str]);
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------ */
 /* Complex arithmetic and stack machine                                */
 /* ------------------------------------------------------------------ */
 
@@ -634,9 +699,10 @@ export function crossCheck(result, native) {
 export function calculate(src) {
   const ast = parse(src);
   const program = compile(ast);
+  const spans = program.length <= SPAN_LIMIT ? compileSpans(ast) : null;
   const raw = runProgram(program);
   const scale = literalScale(ast);
   const result = cleanResult(raw, scale);
   const native = cleanResult(evalNative(ast), scale);
-  return { ast, program, raw, result, native, ok: crossCheck(result, native), stats: stats(program), scale };
+  return { ast, program, spans, raw, result, native, ok: crossCheck(result, native), stats: stats(program), scale };
 }

@@ -7,6 +7,7 @@
   <meta name="description" content="Ein Taschenrechner mit nur zwei Tasten (1 und EML): Deine Rechenaufgabe erscheint als EML-Programm im Display und wird dort ausgerechnet.">
   <meta name="theme-color" content="#0d0e10">
   <meta name="color-scheme" content="dark">
+  <link rel="canonical" href="https://j0hnhaas.github.io/eml-calculator/">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -58,6 +59,17 @@
           </div>
         </div>
         <p class="kbd-hint" data-i18n="device.kbd"></p>
+      </section>
+
+      <section class="legend" id="legend" hidden aria-labelledby="segTitle">
+        <div class="legend-head">
+          <h2 id="segTitle" data-i18n="seg.title">Farben im Programm</h2>
+          <button type="button" class="btn btn-secondary btn-small seg-toggle" id="segToggle" aria-pressed="true" data-i18n="seg.toggle">Farben</button>
+        </div>
+        <div id="segBody">
+          <div class="seg-chips" id="segChips"></div>
+          <p class="seg-explain" id="segExplain" aria-live="polite"></p>
+        </div>
       </section>
 
       <section class="stepper" id="stepper" hidden aria-labelledby="stepTitle">

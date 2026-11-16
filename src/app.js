@@ -1,7 +1,7 @@
 import {
-  EmlError, EmlMachine, calculate, cleanResult, compile, formatResult,
+  EmlError, EmlMachine, SPAN_TAGS, calculate, cleanResult, compile, formatResult,
 } from './eml.js';
-import { BLOCKS, LINKS, STRINGS, detectLang, makeT } from './i18n.js';
+import { BLOCKS, LINKS, SEG_FORMULA, STRINGS, detectLang, makeT } from './i18n.js';
 
 const $ = (id) => document.getElementById(id);
 const el = {
@@ -13,6 +13,7 @@ const el = {
   stepExplain: $('stepExplain'), stepNextHint: $('stepNextHint'),
   stepStart: $('stepStart'), stepBack: $('stepBack'), stepNext: $('stepNext'), stepPlay: $('stepPlay'), stepEnd: $('stepEnd'),
   stepClose: $('stepClose'),
+  legend: $('legend'), segBody: $('segBody'), segChips: $('segChips'), segExplain: $('segExplain'), segToggle: $('segToggle'),
   reset: $('resetBtn'), symbols: $('symbolChips'), examples: $('exampleChips'), blocks: $('blocksBody'),
 };
 
@@ -35,7 +36,11 @@ const view = {
   live: false,
   note: null, // {key, vars, warn}
   error: null, // {code, info}
+  spans: null, // colour runs of the program on show (null: none)
+  segStats: null,
+  segId: 0,
 };
+const colors = { on: true, hl: null };
 let anim = null;
 
 /* ------------------------------------------------------------------ */
@@ -134,14 +139,114 @@ function renderLcd() {
   else el.meta.textContent = n ? `${n} ${t('lcd.keys')} · ${t('lcd.stack')} ${machine.depth}` : '';
   el.empty.hidden = n > 0 || view.mode === 'running' || stepping;
   renderValue();
+  renderLegend();
 }
+
+/** Append the part [from, to) of the colour runs to `parent`. */
+function paintRuns(parent, spans, from, to) {
+  let off = 0;
+  for (const [tag, str] of spans) {
+    const a = Math.max(from, off);
+    const b = Math.min(to, off + str.length);
+    if (a < b) {
+      const run = document.createElement('span');
+      run.className = 'run t-' + tag;
+      run.textContent = str.slice(a - off, b - off);
+      parent.append(run);
+    }
+    off += str.length;
+    if (off >= to) break;
+  }
+}
+
+function setSpans(spans) {
+  view.spans = spans;
+  view.segStats = null;
+  if (spans) {
+    const by = {};
+    let total = 0;
+    for (const [tag, str] of spans) { by[tag] = (by[tag] || 0) + str.length; total += str.length; }
+    view.segStats = { by, total };
+  }
+  view.segId++;
+}
+
+const useColors = () => colors.on && !!view.spans && (view.mode === 'done' || view.mode === 'step');
 
 function setProgramText(running) {
   const full = machine.program;
-  const text = running && full.length > TAIL ? full.slice(-TAIL) : full;
-  if (el.prog.textContent !== text) el.prog.textContent = text;
   el.prog.classList.toggle('typing', running);
+  if (!running && view.mode === 'done' && useColors()) {
+    const frag = document.createDocumentFragment();
+    paintRuns(frag, view.spans, 0, full.length);
+    el.prog.replaceChildren(frag);
+    el.prog.dataset.rich = '1';
+  } else {
+    const text = running && full.length > TAIL ? full.slice(-TAIL) : full;
+    if (el.prog.dataset.rich || el.prog.textContent !== text) el.prog.textContent = text;
+    delete el.prog.dataset.rich;
+  }
   if (running || view.mode === 'manual') el.prog.scrollTop = el.prog.scrollHeight;
+}
+
+/* ------------------------------------------------------------------ */
+/* Colour legend                                                       */
+/* ------------------------------------------------------------------ */
+
+let legendKey = '';
+
+function renderLegend() {
+  const show = !!view.spans && (view.mode === 'done' || view.mode === 'step');
+  if (el.legend.hidden === show) el.legend.hidden = !show;
+  if (!show) { legendKey = ''; delete el.prog.dataset.hl; return; }
+  const key = `${lang}|${colors.on}|${view.segId}`;
+  if (key === legendKey) return;
+  legendKey = key;
+  el.segToggle.setAttribute('aria-pressed', String(colors.on));
+  el.segBody.hidden = !colors.on;
+  if (!colors.on) { delete el.prog.dataset.hl; return; }
+  el.segChips.replaceChildren();
+  for (const tag of SPAN_TAGS) {
+    if (!view.segStats.by[tag]) continue;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'seg-chip';
+    b.dataset.tag = tag;
+    const dot = document.createElement('span');
+    dot.className = 'seg-dot t-' + tag;
+    dot.setAttribute('aria-hidden', 'true');
+    const name = document.createElement('span');
+    name.textContent = t('seg.name.' + tag);
+    b.append(dot, name);
+    b.addEventListener('click', () => { colors.hl = colors.hl === tag ? null : tag; applyHighlight(); });
+    el.segChips.append(b);
+  }
+  applyHighlight();
+}
+
+function applyHighlight() {
+  const st = view.segStats;
+  if (colors.hl && !(st && st.by[colors.hl])) colors.hl = null;
+  if (colors.hl) el.prog.dataset.hl = colors.hl; else delete el.prog.dataset.hl;
+  for (const b of el.segChips.children) b.setAttribute('aria-pressed', String(b.dataset.tag === colors.hl));
+  el.segExplain.replaceChildren();
+  if (!colors.hl || !st) { el.segExplain.textContent = t('seg.hint'); return; }
+  const n = st.by[colors.hl];
+  const head = document.createElement('strong');
+  head.textContent = t('seg.name.' + colors.hl);
+  const f = document.createElement('code');
+  f.textContent = colors.hl === 'num' ? t('seg.f.num') : SEG_FORMULA[colors.hl];
+  const c = document.createElement('span');
+  c.className = 'seg-count';
+  c.textContent = t('seg.count', { n, k: st.total, p: Math.round((100 * n) / st.total) });
+  el.segExplain.append(head, ' ', f, ' ', c);
+}
+
+function toggleColors() {
+  colors.on = !colors.on;
+  if (view.mode === 'done') setProgramText(false);
+  else if (step.active) renderStepProgram();
+  renderLegend();
 }
 
 function flashKey(token) {
@@ -236,6 +341,7 @@ function finishTask(calc) {
   view.mode = 'done';
   view.live = false;
   view.item = machine.top();
+  setSpans(calc.spans);
   setProgramText(false);
   el.prog.scrollTop = 0;
   renderLcd();
@@ -276,6 +382,8 @@ function runTask(src) {
   if (!calc) return;
 
   machine = new EmlMachine();
+  colors.hl = null;
+  setSpans(null);
   view.mode = 'running';
   view.task = src.trim();
   view.scale = calc.scale;
@@ -325,6 +433,7 @@ function manualPress(token) {
   setError(null);
   if (view.mode !== 'manual') {
     view.mode = 'manual';
+    setSpans(null);
     view.scale = 1;
     setNote('note.manual');
   }
@@ -349,6 +458,7 @@ function resetAll() {
   cancelAnim();
   machine = new EmlMachine();
   view.mode = 'idle';
+  setSpans(null);
   view.task = '';
   view.item = null;
   view.live = false;
@@ -375,6 +485,8 @@ function enterStep(src) {
   step.calc = calc;
   step.program = calc.program;
   view.mode = 'step';
+  colors.hl = null;
+  setSpans(calc.spans);
   view.task = src.trim();
   view.scale = calc.scale;
   view.live = false;
@@ -396,7 +508,7 @@ function closeStepper() {
   // keep what the LCD shows: a finished program stays a result, a partial one can be continued by hand
   const complete = machine.count === step.program.length;
   view.mode = complete ? 'done' : 'manual';
-  if (!complete) view.scale = 1;
+  if (!complete) { view.scale = 1; setSpans(null); }
   view.item = machine.top();
   setProgramText(false);
   el.prog.scrollTop = complete ? 0 : el.prog.scrollHeight;
@@ -409,19 +521,29 @@ function renderStepProgram() {
   const windowed = full.length > 6000;
   const from = windowed ? Math.max(0, pos - 1200) : 0;
   const to = windowed ? Math.min(full.length, pos + 1200) : full.length;
+  const colored = useColors();
   const done = document.createElement('span');
   done.className = 'prog-done';
-  done.textContent = (from > 0 ? '…' : '') + full.slice(from, pos);
+  if (from > 0) done.append('…');
   const cursor = document.createElement('span');
   cursor.className = 'prog-cursor';
   const next = document.createElement('span');
   next.className = 'prog-next';
-  next.textContent = pos < full.length ? full[pos] : '';
   const todo = document.createElement('span');
   todo.className = 'prog-todo';
-  todo.textContent = full.slice(pos + 1, to) + (to < full.length ? '…' : '');
+  if (colored) {
+    paintRuns(done, view.spans, from, pos);
+    if (pos < full.length) paintRuns(next, view.spans, pos, pos + 1);
+    paintRuns(todo, view.spans, pos + 1, to);
+  } else {
+    done.append(full.slice(from, pos));
+    next.textContent = pos < full.length ? full[pos] : '';
+    todo.append(full.slice(pos + 1, to));
+  }
+  if (to < full.length) todo.append('…');
   el.prog.classList.remove('typing');
   el.prog.replaceChildren(done, cursor, next, todo);
+  el.prog.dataset.rich = '1';
   el.prog.scrollTop = Math.max(0, cursor.offsetTop - el.prog.clientHeight / 2);
 }
 
@@ -598,6 +720,7 @@ function init() {
     scheduleLive();
   });
   el.reset.addEventListener('click', resetAll);
+  el.segToggle.addEventListener('click', toggleColors);
   el.stepBtn.addEventListener('click', () => enterStep(el.input.value.trim() || view.task));
   el.stepClose.addEventListener('click', closeStepper);
   el.stepStart.addEventListener('click', () => stepJump(false));

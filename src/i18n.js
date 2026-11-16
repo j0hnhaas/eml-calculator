@@ -25,6 +25,19 @@ export const STRINGS = {
     'key.one': 'Taste 1: legt eine 1 auf den Stapel',
     'key.eml': 'Taste EML: nimmt zwei Werte a, b vom Stapel und legt exp(a) − ln(b) zurück',
 
+    'seg.title': 'Farben im Programm',
+    'seg.toggle': 'Farben',
+    'seg.hint': 'Jede Operation färbt die Tasten ein, die sie selbst um ihre Zahlen herum ergänzt. Tippe auf eine Farbe, um sie hervorzuheben.',
+    'seg.count': '{n} von {k} Tasten ({p} %)',
+    'seg.name.num': 'Zahlen & e',
+    'seg.name.add': 'Plus',
+    'seg.name.sub': 'Minus',
+    'seg.name.mul': 'Mal',
+    'seg.name.div': 'Geteilt',
+    'seg.name.pow': 'Hoch',
+    'seg.name.exp': 'exp',
+    'seg.name.ln': 'ln',
+    'seg.f.num': 'Zahlen werden aus 1en gebaut (2 = 1 + 1 …), e = eml(1, 1).',
     'key.one.sub': 'legt 1 auf den Stapel',
     'key.eml.sub': 'exp(a) − ln(b)',
     'form.allowed': 'Was ist erlaubt?',
@@ -124,6 +137,19 @@ export const STRINGS = {
     'key.one': 'Key 1: pushes a 1 onto the stack',
     'key.eml': 'Key EML: pops two values a, b and pushes exp(a) − ln(b)',
 
+    'seg.title': 'Colours in the program',
+    'seg.toggle': 'Colours',
+    'seg.hint': 'Each operation colours the keys it adds around its own numbers. Tap a colour to highlight it.',
+    'seg.count': '{n} of {k} keys ({p}%)',
+    'seg.name.num': 'Numbers & e',
+    'seg.name.add': 'Plus',
+    'seg.name.sub': 'Minus',
+    'seg.name.mul': 'Times',
+    'seg.name.div': 'Divide',
+    'seg.name.pow': 'Power',
+    'seg.name.exp': 'exp',
+    'seg.name.ln': 'ln',
+    'seg.f.num': 'Numbers are built from 1s (2 = 1 + 1 …), e = eml(1, 1).',
     'key.one.sub': 'pushes 1',
     'key.eml.sub': 'exp(a) − ln(b)',
     'form.allowed': 'What is allowed?',
@@ -204,6 +230,17 @@ export const STRINGS = {
     'links.repo': 'Source code & documentation',
     'footer.text': 'Free software (MIT licence). Anonymous, cookie-free visitor statistics with GoatCounter.',
   },
+};
+
+/** Formula behind each coloured operation (language-neutral). */
+export const SEG_FORMULA = {
+  add: 'x + y = x − (−y)',
+  sub: 'x − y = eml(ln x, eʸ)    −y = eml(ln 0, eʸ)',
+  mul: 'x × y = x ÷ (1/y)',
+  div: 'x ÷ y = eml(eml(ln ln x, y), 1)',
+  pow: 'xʸ = e^(y · ln x)',
+  exp: 'eˣ = eml(x, 1)',
+  ln: 'ln x = eml(1, eml(eml(1, x), 1))',
 };
 
 /** Operations shown in the info table: [label, eml formula]. */
