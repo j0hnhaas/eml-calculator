@@ -183,23 +183,37 @@ const ZERO = LN(ONE);
 const MINF = LN(ZERO);
 const SUB = (a, b) => LN(a) + EXP(b) + 'E';
 const NEG = (b) => MINF + EXP(b) + 'E';
-const ADD = (a, b) => SUB(a, NEG(b));
 const INV = (b) => MINF + b + 'E1E';
+
+/**
+ * Short variants of + and x, found by exhaustive search over EML trees; they have the lengths
+ * of the direct-search results in the paper (x+y: 19 keys, x*y: 17; the long forms need 27 and 33).
+ * x and y mark where the operand programs go. (x-y and x/y are already as short: 11 and 17 keys.)
+ *   x + y = eml(1, exp(eml(ln(eml(1, exp x)), exp y)))
+ *   x * y = exp(eml(1, exp(eml(ln(eml(1, x)), y))))
+ */
+export const SHORT_TPL = {
+  add: '1111x1EEE1EEy1EE1EE',
+  mul: '1111xEE1EEyE1EE1E',
+};
+let SHORT = false; // set by withMode() while compiling
+const tpl = (t, a, b) => t.replace(/[xy]/g, (c) => (c === 'x' ? a : b));
+const ADD = (a, b) => (SHORT ? tpl(SHORT_TPL.add, a, b) : SUB(a, NEG(b)));
 const DIV = (a, b) => LN(LN(a)) + b + 'E1E';
-const MUL = (a, b) => DIV(a, INV(b));
+const MUL = (a, b) => (SHORT ? tpl(SHORT_TPL.mul, a, b) : DIV(a, INV(b)));
 const POW = (a, b) => EXP(MUL(b, LN(a)));
 
 /** Token-length model of the operations above (for choosing short integer encodings). */
-const C_MUL = 31;
-const C_ADD = 25;
+let C_MUL = 31;
+let C_ADD = 25;
 const C_SUB = 9;
 
 export const MAX_PROGRAM_LENGTH = 300000;
 
 /* Integer encodings: pick the cheapest of factor / (n-1)+1 / (n+1)-1.
  * Add/sub adjustments are limited to a few consecutive steps to bound the recursion. */
-const costMemo = new Map();
-const planMemo = new Map();
+let costMemo = new Map();
+let planMemo = new Map();
 const ADJUST = 3;
 
 function factorPairs(n) {
@@ -257,7 +271,7 @@ function intCost(n, k = ADJUST) {
   return best;
 }
 
-const strMemo = new Map();
+let strMemo = new Map();
 function planToString(plan) {
   if (plan.op === 'mul') return MUL(intStr(plan.a), intStr(plan.b));
   if (plan.op === 'add') return ADD(intStr(plan.a, plan.k), ONE);
@@ -288,6 +302,40 @@ function toFraction(text) {
   let p = Number((ip || '0') + fp);
   const g = gcd(p, q) || 1;
   return [p / g, q / g];
+}
+
+const MEMOS = { long: [costMemo, planMemo, strMemo], short: [new Map(), new Map(), new Map()] };
+
+/** Run fn with the long (default, easy to follow) or the short formulas. */
+function withMode(short, fn) {
+  const before = SHORT;
+  SHORT = !!short;
+  [C_MUL, C_ADD] = SHORT ? [15, 17] : [31, 25];
+  [costMemo, planMemo, strMemo] = MEMOS[SHORT ? 'short' : 'long'];
+  try { return fn(); } finally {
+    SHORT = before;
+    [C_MUL, C_ADD] = SHORT ? [15, 17] : [31, 25];
+    [costMemo, planMemo, strMemo] = MEMOS[SHORT ? 'short' : 'long'];
+  }
+}
+
+const isPlainReal = (v) => Number.isFinite(v[0]) && Math.abs(v[0]) < 1e150 && Math.abs(v[1]) <= 1e-12 * Math.max(1, Math.abs(v[0]));
+
+/**
+ * The short formulas were found for positive real operands, and their intermediate steps
+ * leave tiny imaginary noise that would flip the branch of ln wherever a value is negative
+ * or complex. So they are used only if every value in the whole calculation is a finite,
+ * non-negative real number; otherwise the longer, branch-safe formulas are used throughout.
+ */
+export function canUseShort(input) {
+  const ast = typeof input === 'string' ? parse(input) : input;
+  const ok = (n) => {
+    if (n.k === 'bin') { if (!ok(n.a) || !ok(n.b)) return false; }
+    else if (n.k === 'neg' || n.k === 'fn') { if (!ok(n.a)) return false; }
+    const v = evalNative(n);
+    return isPlainReal(v) && v[0] >= 0 && (n.k !== 'bin' || n.op !== '^' || evalNative(n.a)[0] > 0);
+  };
+  return ok(ast);
 }
 
 function checkLen(s) {
@@ -331,9 +379,9 @@ function compileNode(n) {
 }
 
 /** Compile an AST (or source string) to a pure 1/E program. */
-export function compile(input) {
+export function compile(input, { short = false } = {}) {
   const ast = typeof input === 'string' ? parse(input) : input;
-  return compileNode(ast);
+  return withMode(short && canUseShort(ast), () => compileNode(ast));
 }
 
 /* ------------------------------------------------------------------ */
@@ -352,10 +400,15 @@ const sEXP = (a, g) => cat(a, T(g, '1E'));
 const sLN = (a, g) => cat(T(g, '11'), a, T(g, 'E1EE'));
 const sSUB = (a, b, g) => cat(sLN(a, g), sEXP(b, g), T(g, 'E'));
 const sNEG = (b, g) => cat(T(g, MINF), sEXP(b, g), T(g, 'E'));
-const sADD = (a, b, g) => sSUB(a, sNEG(b, g), g);
+const sTpl = (t, a, b, g) => cat(...t.split(/([xy])/).map((piece) => {
+  if (piece === 'x') return a;
+  if (piece === 'y') return b;
+  return piece ? T(g, piece) : [];
+}));
+const sADD = (a, b, g) => (SHORT ? sTpl(SHORT_TPL.add, a, b, g) : sSUB(a, sNEG(b, g), g));
 const sINV = (b, g) => cat(T(g, MINF), b, T(g, 'E1E'));
 const sDIV = (a, b, g) => cat(sLN(sLN(a, g), g), b, T(g, 'E1E'));
-const sMUL = (a, b, g) => sDIV(a, sINV(b, g), g);
+const sMUL = (a, b, g) => (SHORT ? sTpl(SHORT_TPL.mul, a, b, g) : sDIV(a, sINV(b, g), g));
 
 function spanNode(n) {
   switch (n.k) {
@@ -390,10 +443,10 @@ function spanNode(n) {
  * An operation owns the keys it adds around its operands; the operands keep their own tag.
  * Joining all texts gives exactly compile(input). Only meant for programs up to SPAN_LIMIT.
  */
-export function compileSpans(input) {
+export function compileSpans(input, { short = false } = {}) {
   const ast = typeof input === 'string' ? parse(input) : input;
   const out = [];
-  for (const [tag, str] of spanNode(ast)) {
+  for (const [tag, str] of withMode(short && canUseShort(ast), () => spanNode(ast))) {
     const last = out[out.length - 1];
     if (last && last[0] === tag) last[1] += str;
     else out.push([tag, str]);
@@ -696,13 +749,14 @@ export function crossCheck(result, native) {
  * One-stop helper: parse, compile, run and cross-check.
  * Throws EmlError on parse/size problems.
  */
-export function calculate(src) {
+export function calculate(src, { short = false } = {}) {
   const ast = parse(src);
-  const program = compile(ast);
-  const spans = program.length <= SPAN_LIMIT ? compileSpans(ast) : null;
+  const shortUsed = short && canUseShort(ast);
+  const program = compile(ast, { short: shortUsed });
+  const spans = program.length <= SPAN_LIMIT ? compileSpans(ast, { short: shortUsed }) : null;
   const raw = runProgram(program);
   const scale = literalScale(ast);
   const result = cleanResult(raw, scale);
   const native = cleanResult(evalNative(ast), scale);
-  return { ast, program, spans, raw, result, native, ok: crossCheck(result, native), stats: stats(program), scale };
+  return { ast, program, spans, shortUsed, raw, result, native, ok: crossCheck(result, native), stats: stats(program), scale };
 }

@@ -366,6 +366,16 @@ h1::before {
 }
 .chip:active { transform: translateY(1px); box-shadow: none; background: var(--bg-2); }
 
+.mode-block { margin-top: 12px; }
+.mode-switch { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--card); }
+.mode-btn {
+  appearance: none; border: 0; background: transparent; color: var(--ink-soft); cursor: pointer;
+  font: 700 0.8rem/1 var(--mono); letter-spacing: 0.06em; padding: 0 16px; min-height: 38px; touch-action: manipulation;
+}
+.mode-btn[aria-pressed="true"] { background: var(--amber); color: #1a0d02; }
+.mode-hint { margin: 8px 2px 0; font: 500 0.74rem/1.45 var(--mono); color: var(--ink-faint); }
+.mode-hint.warn { color: var(--amber); }
+
 .allowed { margin-top: 14px; font-size: 0.84rem; color: var(--ink-soft); }
 .allowed summary { cursor: pointer; font: 600 0.66rem/1.4 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
 .allowed p { margin: 6px 0 0; }
@@ -413,6 +423,7 @@ tbody tr:last-child td { border-bottom: 0; }
 th { font: 700 0.66rem/1.2 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); }
 td:first-child { white-space: nowrap; color: var(--ink); }
 td code { background: none; padding: 0; white-space: nowrap; color: #ffd08a; font-size: 0.9rem; }
+td:nth-child(3) code { color: #8fe3a4; }
 
 /* ---------- links ---------- */
 .links ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }

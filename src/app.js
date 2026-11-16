@@ -1,7 +1,7 @@
 import {
   EmlError, EmlMachine, SPAN_TAGS, calculate, cleanResult, compile, formatResult,
 } from './eml.js';
-import { BLOCKS, LINKS, SEG_FORMULA, STRINGS, detectLang, makeT } from './i18n.js';
+import { BLOCKS, LINKS, SEG_FORMULA, SHORT_BLOCKS, STRINGS, detectLang, makeT } from './i18n.js';
 
 const $ = (id) => document.getElementById(id);
 const el = {
@@ -14,6 +14,7 @@ const el = {
   stepStart: $('stepStart'), stepBack: $('stepBack'), stepNext: $('stepNext'), stepPlay: $('stepPlay'), stepEnd: $('stepEnd'),
   stepClose: $('stepClose'),
   legend: $('legend'), segBody: $('segBody'), segChips: $('segChips'), segExplain: $('segExplain'), segToggle: $('segToggle'),
+  modeHint: $('modeHint'),
   reset: $('resetBtn'), symbols: $('symbolChips'), examples: $('exampleChips'), blocks: $('blocksBody'),
 };
 
@@ -39,8 +40,10 @@ const view = {
   spans: null, // colour runs of the program on show (null: none)
   segStats: null,
   segId: 0,
+  fallback: false, // short formulas were asked for but this calculation had to use the long ones
 };
 const colors = { on: true, hl: null };
+const opts = { short: false }; // formula set: the long, easy-to-follow one or the short one
 let anim = null;
 
 /* ------------------------------------------------------------------ */
@@ -62,6 +65,7 @@ function syncUrl() {
   try {
     const u = new URL(location.href);
     u.searchParams.set('lang', lang);
+    if (opts.short) u.searchParams.set('formulas', 'short'); else u.searchParams.delete('formulas');
     history.replaceState(history.state, '', u);
   } catch { /* e.g. sandboxed or file: contexts */ }
 }
@@ -90,6 +94,7 @@ function applyLang(next, persist = false) {
   renderNote();
   renderError();
   updateLive();
+  renderModeHint();
 }
 
 function renderStatic() {
@@ -102,7 +107,13 @@ function renderStatic() {
     const c = document.createElement('code');
     c.textContent = formula;
     b.append(c);
-    tr.append(a, b);
+    const d = document.createElement('td');
+    if (SHORT_BLOCKS[label]) {
+      const cs = document.createElement('code');
+      cs.textContent = SHORT_BLOCKS[label];
+      d.append(cs);
+    }
+    tr.append(a, b, d);
     el.blocks.append(tr);
   }
 }
@@ -140,6 +151,7 @@ function renderLcd() {
   el.empty.hidden = n > 0 || view.mode === 'running' || stepping;
   renderValue();
   renderLegend();
+  renderModeHint();
 }
 
 /** Append the part [from, to) of the colour runs to `parent`. */
@@ -187,6 +199,34 @@ function setProgramText(running) {
     delete el.prog.dataset.rich;
   }
   if (running || view.mode === 'manual') el.prog.scrollTop = el.prog.scrollHeight;
+}
+
+/* ------------------------------------------------------------------ */
+/* Formula set: simple or short                                        */
+/* ------------------------------------------------------------------ */
+
+let modeKey = '';
+function renderModeHint() {
+  const shown0 = view.fallback && (view.mode === 'running' || view.mode === 'done' || view.mode === 'step');
+  const key = `${lang}|${opts.short}|${shown0}`;
+  if (key === modeKey) return;
+  modeKey = key;
+  for (const b of document.querySelectorAll('.mode-btn')) b.setAttribute('aria-pressed', String((b.dataset.mode === 'short') === opts.short));
+  const shown = view.fallback && (view.mode === 'running' || view.mode === 'done' || view.mode === 'step');
+  el.modeHint.textContent = t(shown ? 'mode.fallback' : opts.short ? 'mode.hint.short' : 'mode.hint.long');
+  el.modeHint.classList.toggle('warn', shown);
+}
+
+function setFormulaMode(short) {
+  if (opts.short === short) return;
+  opts.short = short;
+  view.fallback = false;
+  syncUrl();
+  renderLcd();
+  updateLive();
+  // show the same calculation again with the other formulas
+  if (step.active) enterStep(view.task);
+  else if (view.mode === 'done' && view.task) runTask(view.task);
 }
 
 /* ------------------------------------------------------------------ */
@@ -304,7 +344,7 @@ function updateLive() {
     return;
   }
   try {
-    el.live.textContent = t('form.live.ok', { n: compile(src).length });
+    el.live.textContent = t('form.live.ok', { n: compile(src, opts).length });
     el.live.className = 'task-live ok';
   } catch (e) {
     el.live.textContent = e instanceof EmlError ? errorText(e) : '';
@@ -366,7 +406,7 @@ function setResultNote(calc) {
 /** Parse, compile and run; shows the error (and returns null) if the sum is not valid. */
 function prepare(src) {
   try {
-    return calculate(src);
+    return calculate(src, opts);
   } catch (e) {
     if (e instanceof EmlError) setError({ code: e.code, info: e.info });
     else { console.error(e); setError({ code: 'internal' }); }
@@ -384,6 +424,7 @@ function runTask(src) {
   machine = new EmlMachine();
   colors.hl = null;
   setSpans(null);
+  view.fallback = opts.short && !calc.shortUsed;
   view.mode = 'running';
   view.task = src.trim();
   view.scale = calc.scale;
@@ -433,6 +474,7 @@ function manualPress(token) {
   setError(null);
   if (view.mode !== 'manual') {
     view.mode = 'manual';
+    view.fallback = false;
     setSpans(null);
     view.scale = 1;
     setNote('note.manual');
@@ -458,6 +500,7 @@ function resetAll() {
   cancelAnim();
   machine = new EmlMachine();
   view.mode = 'idle';
+  view.fallback = false;
   setSpans(null);
   view.task = '';
   view.item = null;
@@ -487,6 +530,7 @@ function enterStep(src) {
   view.mode = 'step';
   colors.hl = null;
   setSpans(calc.spans);
+  view.fallback = opts.short && !calc.shortUsed;
   view.task = src.trim();
   view.scale = calc.scale;
   view.live = false;
@@ -508,7 +552,7 @@ function closeStepper() {
   // keep what the LCD shows: a finished program stays a result, a partial one can be continued by hand
   const complete = machine.count === step.program.length;
   view.mode = complete ? 'done' : 'manual';
-  if (!complete) { view.scale = 1; setSpans(null); }
+  if (!complete) { view.scale = 1; view.fallback = false; setSpans(null); }
   view.item = machine.top();
   setProgramText(false);
   el.prog.scrollTop = complete ? 0 : el.prog.scrollHeight;
@@ -721,6 +765,8 @@ function init() {
   });
   el.reset.addEventListener('click', resetAll);
   el.segToggle.addEventListener('click', toggleColors);
+  for (const b of document.querySelectorAll('.mode-btn')) b.addEventListener('click', () => setFormulaMode(b.dataset.mode === 'short'));
+  opts.short = new URLSearchParams(location.search).get('formulas') === 'short';
   el.stepBtn.addEventListener('click', () => enterStep(el.input.value.trim() || view.task));
   el.stepClose.addEventListener('click', closeStepper);
   el.stepStart.addEventListener('click', () => stepJump(false));

@@ -37,6 +37,13 @@ x ÷ y  = eml(eml(ln ln x, y), 1) x × y  = x ÷ (1/y)
 x ^ y  = exp(y · ln x)
 ```
 
+**Kurze Formeln (Modus „Kurz“):** Für `+` und `×` gibt es kürzere Formeln mit den Längen der Direktsuche aus dem Paper (19 bzw. 17 Tasten statt 27 bzw. 33). Sie wurden hier per Meet-in-the-middle-Suche über alle EML-Bäume gefunden und gegen die ausführlichen Formeln geprüft; das Paper nennt nur die Längen. Sie gelten sicher nur, wenn alle Werte der Rechnung reell und nicht negativ sind (sonst kippt der Zweig von `ln` durch Rundungsrauschen), deshalb rechnet der Rechner dann automatisch mit den ausführlichen Formeln und sagt das auch. / *Short mode: for `+` and `×` there are shorter formulas with the lengths of the paper's direct search (19 and 17 keys instead of 27 and 33), found here by an exhaustive search; they are only safe for real, non-negative values, otherwise the long formulas are used automatically.*
+
+```
+x + y  = eml(1, exp(eml(ln(eml(1, exp x)), exp y)))
+x × y  = exp(eml(1, exp(eml(ln(eml(1, x)), y))))
+```
+
 Die Auswertung läuft in komplexer Arithmetik (Hauptwert) mit `ln 0 = −∞`. Extrem große oder kleine Zwischenwerte (`exp(y)` in der Subtraktion!) werden logarithmisch weitergeführt, damit nichts überläuft. Zur Kontrolle wird jede Aufgabe zusätzlich gewöhnlich gerechnet und verglichen.
 
 ## Bedienung / Usage
@@ -45,11 +52,15 @@ Die Auswertung läuft in komplexer Arithmetik (Hauptwert) mit `ln 0 = −∞`. E
 - **Tastatur:** `1` und `E` drücken die beiden Tasten (wenn das Eingabefeld nicht aktiv ist). / `1` and `E` press the two keys.
 - **Schritt für Schritt:** Programm vor/zurück/automatisch durchgehen, Stapel und Erklärung pro Schritt; die nächste Taste leuchtet und kann selbst gedrückt werden, Pfeiltasten gehen vor und zurück. / Step through the program with the stack and an explanation per step; the next key glows and can be pressed yourself.
 
+- **Farben im Programm:** Jede Operation färbt die Tasten ein, die sie um ihre Zahlen herum ergänzt; die Legende lässt Farben ein- und ausschalten und hebt beim Antippen eine Operation samt Formel hervor. / Every operation colours the keys it adds around its numbers; tap a colour in the legend to highlight it.
+- **Formeln „Einfach“ / „Kurz“:** schaltet zwischen den ausführlichen und den kurzen Formeln um (siehe oben). / Switches between the long and the short formulas.
+
 ## URL-Parameter
 
 | Parameter | Wirkung / Effect |
 |-----------|------------------|
 | `?lang=de` / `?lang=en` | Sprache / language (wird beim Umschalten automatisch in die URL geschrieben) |
+| `?formulas=short` | kurze Formeln für + und × / short formulas for + and × |
 | `?q=2%5E10` | Aufgabe direkt rechnen / run a sum on load |
 
 Beispiel: https://j0hnhaas.github.io/eml-calculator/?lang=en&q=12*(5-2)

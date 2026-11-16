@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  parse, compile, compileSpans, SPAN_TAGS, calculate, runProgram, formatResult, stats, EmlError, EmlMachine, cleanResult,
+  parse, compile, compileSpans, canUseShort, SHORT_TPL, SPAN_TAGS, calculate, runProgram, formatResult, stats, EmlError, EmlMachine, cleanResult,
 } from '../src/eml.js';
 
 const val = (src) => {
@@ -194,4 +194,50 @@ test('colour runs: they spell the program exactly and use known tags', () => {
   const long = calculate(Array(60).fill('987654321098').join('*'));
   assert.ok(long.program.length > 20000);
   assert.equal(long.spans, null);
+});
+
+test('short formulas: paper lengths, same results, safe fallback', () => {
+  // x+y: 19 keys and x*y: 17 keys with one key per operand (paper, Table 4, direct search)
+  assert.equal(SHORT_TPL.add.length, 19);
+  assert.equal(SHORT_TPL.mul.length, 17);
+  assert.equal(compile('1+1', { short: true }), SHORT_TPL.add.replace('x', '1').replace('y', '1'));
+  assert.equal(compile('1*1', { short: true }), SHORT_TPL.mul.replace('x', '1').replace('y', '1'));
+  assert.ok(compile('3+4', { short: true }).length < compile('3+4').length);
+  for (const src of ['3+4', '12*(5-2)', '2^10', '1/3', '1.5+2.25', '123*456', '0*5', '0+0', 'ln(10)', '2^100', '100/8+7*3']) {
+    const a = calculate(src);
+    const b = calculate(src, { short: true });
+    assert.equal(b.shortUsed, true, src);
+    assert.equal(formatResult(b.result), formatResult(a.result), src);
+    assert.equal(b.spans.map((r) => r[1]).join(''), b.program, src);
+  }
+  // negative or complex values anywhere: the long formulas are used (branch-safe)
+  for (const src of ['7-9', '(-8)^(1/3)', 'ln(0.5)', '(2.5-3)^2', '1/0', '2^1000']) {
+    assert.equal(canUseShort(src), false, src);
+    const b = calculate(src, { short: true });
+    assert.equal(b.shortUsed, false, src);
+    assert.equal(b.program, calculate(src).program, src);
+  }
+});
+
+test('short formulas: fuzz agrees with ordinary evaluation', () => {
+  let seed = 31337;
+  const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  const pick = (a) => a[Math.floor(rnd() * a.length)];
+  const nums = ['0', '1', '2', '3', '5', '7', '0.5', '1.5', '2.5', '10', '12', '25', '100', '0.25', '4', '9', '1000', '0.001'];
+  const gen = (d) => {
+    if (d === 0 || rnd() < 0.2) return rnd() < 0.08 ? 'e' : pick(nums);
+    const r = rnd();
+    if (r < 0.06) return '-(' + gen(d - 1) + ')';
+    if (r < 0.12) return 'ln(' + gen(d - 1) + ')';
+    if (r < 0.18) return 'exp(' + gen(d - 1) + ')';
+    return '(' + gen(d - 1) + pick(['+', '-', '*', '/', '^', '+', '*']) + gen(d - 1) + ')';
+  };
+  let used = 0;
+  for (let i = 0; i < 1500; i++) {
+    const src = gen(3);
+    const r = calculate(src, { short: true });
+    if (r.shortUsed) used++;
+    if (calculate(src).ok !== false) assert.notEqual(r.ok, false, `${src}: ${formatResult(r.result)} vs ${formatResult(r.native)}`);
+  }
+  assert.ok(used > 500);
 });

@@ -38,6 +38,12 @@ export const STRINGS = {
     'seg.name.exp': 'exp',
     'seg.name.ln': 'ln',
     'seg.f.num': 'Zahlen werden aus 1en gebaut (2 = 1 + 1 …), e = eml(1, 1).',
+    'form.formulas': 'Formeln',
+    'mode.long': 'Einfach',
+    'mode.short': 'Kurz',
+    'mode.hint.long': 'Einfach: leicht nachzurechnen, aber länger (+ braucht 27 Tasten, × 33).',
+    'mode.hint.short': 'Kurz: + nur 19 Tasten, × nur 17 – so kurz wie die Direktsuche im Paper.',
+    'mode.fallback': 'Hier ausführlich gerechnet: Die kurzen Formeln sind nur sicher, wenn alle Werte nicht negativ und reell sind.',
     'key.one.sub': 'legt 1 auf den Stapel',
     'key.eml.sub': 'exp(a) − ln(b)',
     'form.allowed': 'Was ist erlaubt?',
@@ -106,7 +112,8 @@ export const STRINGS = {
     'info.blocks.h': 'Die Bausteine',
     'info.blocks.th1': 'Operation',
     'info.blocks.th2': 'als eml-Formel',
-    'info.blocks.note': 'Dabei gilt ln 0 = −∞ und e<sup>−∞</sup> = 0. Diese Formeln sind nicht die kürzesten: Im Paper werden für + und × per Suche gefundene Formeln mit nur 19 bzw. 17 Zeichen genannt.',
+    'info.blocks.th3': 'kurz (Modus „Kurz“)',
+    'info.blocks.note': 'Dabei gilt ln 0 = −∞ und e<sup>−∞</sup> = 0. Für + und × gibt es kürzere Formeln (rechte Spalte): Sie haben die Längen der Direktsuche aus dem Paper – 19 bzw. 17 Tasten – und wurden hier selbst per Suche gefunden und geprüft. Sie gelten sicher nur für reelle, nicht negative Werte; sonst rechnet der Rechner mit den ausführlichen Formeln.',
     'info.good.h': 'Gut zu wissen',
     'info.good.1': 'Intern wird mit komplexen Zahlen gerechnet: ln(−1) ergibt iπ. Deshalb liefert z. B. (−8)^(1/3) den Hauptwert 1 + 1,732i.',
     'info.good.2': 'Gerechnet wird in Gleitkommazahlen, angezeigt werden etwa 10 Stellen. Sehr große oder kleine Zwischenwerte werden logarithmisch weitergeführt, damit nichts überläuft.',
@@ -150,6 +157,12 @@ export const STRINGS = {
     'seg.name.exp': 'exp',
     'seg.name.ln': 'ln',
     'seg.f.num': 'Numbers are built from 1s (2 = 1 + 1 …), e = eml(1, 1).',
+    'form.formulas': 'Formulas',
+    'mode.long': 'Simple',
+    'mode.short': 'Short',
+    'mode.hint.long': 'Simple: easy to follow, but longer (+ takes 27 keys, × 33).',
+    'mode.hint.short': 'Short: + only 19 keys, × only 17 – as short as the direct search in the paper.',
+    'mode.fallback': 'Computed the long way here: the short formulas are only safe when every value is real and not negative.',
     'key.one.sub': 'pushes 1',
     'key.eml.sub': 'exp(a) − ln(b)',
     'form.allowed': 'What is allowed?',
@@ -218,7 +231,8 @@ export const STRINGS = {
     'info.blocks.h': 'The building blocks',
     'info.blocks.th1': 'Operation',
     'info.blocks.th2': 'as an eml formula',
-    'info.blocks.note': 'Here ln 0 = −∞ and e<sup>−∞</sup> = 0. These formulas are not the shortest: the paper reports formulas found by search with only 19 symbols for + and 17 for ×.',
+    'info.blocks.th3': 'short (mode “Short”)',
+    'info.blocks.note': 'Here ln 0 = −∞ and e<sup>−∞</sup> = 0. Shorter formulas exist for + and × (right column): they have the lengths of the direct search in the paper – 19 and 17 keys – and were found and checked here by an exhaustive search. They are only safe for real, non-negative values; otherwise the calculator uses the long formulas.',
     'info.good.h': 'Good to know',
     'info.good.1': 'Complex numbers are used internally: ln(−1) gives iπ. So (−8)^(1/3), for example, returns the principal value 1 + 1.732i.',
     'info.good.2': 'Calculations use floating point and about 10 digits are shown. Very large or small intermediate values are carried on logarithmically so nothing overflows.',
@@ -241,6 +255,12 @@ export const SEG_FORMULA = {
   pow: 'xʸ = e^(y · ln x)',
   exp: 'eˣ = eml(x, 1)',
   ln: 'ln x = eml(1, eml(eml(1, x), 1))',
+};
+
+/** Short variants (mode "Short"), by label of BLOCKS. */
+export const SHORT_BLOCKS = {
+  'x + y': 'eml(1, exp(eml(ln(eml(1, exp x)), exp y)))',
+  'x × y': 'exp(eml(1, exp(eml(ln(eml(1, x)), y))))',
 };
 
 /** Operations shown in the info table: [label, eml formula]. */

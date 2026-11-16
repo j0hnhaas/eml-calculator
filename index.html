@@ -114,6 +114,14 @@
           <span class="chips-label" data-i18n="form.examples">Beispiele</span>
           <div class="chips" id="exampleChips"></div>
         </div>
+        <div class="chips-block mode-block">
+          <span class="chips-label" data-i18n="form.formulas">Formeln</span>
+          <div class="mode-switch" role="group" aria-label="Formeln" data-i18n-aria="form.formulas">
+            <button type="button" class="mode-btn" data-mode="long" aria-pressed="true" data-i18n="mode.long">Einfach</button>
+            <button type="button" class="mode-btn" data-mode="short" aria-pressed="false" data-i18n="mode.short">Kurz</button>
+          </div>
+        </div>
+        <p class="mode-hint" id="modeHint"></p>
         <details class="allowed">
           <summary data-i18n="form.allowed">Was ist erlaubt?</summary>
           <p id="taskHint" data-i18n="form.hint">Erlaubt: Zahlen, + − × ÷ ^, Klammern, e, ln( ), exp( )</p>
@@ -145,7 +153,7 @@
         <h3 data-i18n="info.blocks.h">Die Bausteine</h3>
         <div class="table-wrap">
           <table>
-            <thead><tr><th scope="col" data-i18n="info.blocks.th1">Operation</th><th scope="col" data-i18n="info.blocks.th2">als eml-Formel</th></tr></thead>
+            <thead><tr><th scope="col" data-i18n="info.blocks.th1">Operation</th><th scope="col" data-i18n="info.blocks.th2">als eml-Formel</th><th scope="col" data-i18n="info.blocks.th3">kurz (Modus „Kurz“)</th></tr></thead>
             <tbody id="blocksBody"></tbody>
           </table>
         </div>
