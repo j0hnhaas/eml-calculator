@@ -42,7 +42,7 @@ const view = {
   segId: 0,
   fallback: false, // short formulas were asked for but this calculation had to use the long ones
 };
-const colors = { on: true, hl: null };
+const colors = { on: false, hl: null }; // colour-coding of the program: off until switched on
 const opts = { short: false }; // formula set: the long, easy-to-follow one or the short one
 let anim = null;
 
@@ -738,9 +738,12 @@ function tapKey(button) {
 }
 
 /** Physical keyboard: 1 and E press the two keys, arrows step through a program. */
+const whatDialog = $('whatDialog');
+
 function onKeydown(e) {
   if (e.key === 'Escape') { skipAnim(); return; }
   if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (whatDialog.open) return;
   const tg = e.target;
   const typing = tg instanceof HTMLElement && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA' || tg.isContentEditable);
   if (typing) return;
@@ -764,6 +767,15 @@ function init() {
     scheduleLive();
   });
   el.reset.addEventListener('click', resetAll);
+  // "What is EML?" – a translucent dialog with a plain-language explanation
+  $('whatBtn').addEventListener('click', () => whatDialog.showModal());
+  for (const id of ['whatClose', 'whatOk']) $(id).addEventListener('click', () => whatDialog.close());
+  whatDialog.addEventListener('click', (e) => { if (e.target === whatDialog) whatDialog.close(); });
+  $('whatMore').addEventListener('click', (e) => {
+    e.preventDefault();
+    whatDialog.close();
+    $('info').scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth' });
+  });
   el.segToggle.addEventListener('click', toggleColors);
   for (const b of document.querySelectorAll('.mode-btn')) b.addEventListener('click', () => setFormulaMode(b.dataset.mode === 'short'));
   opts.short = new URLSearchParams(location.search).get('formulas') === 'short';
