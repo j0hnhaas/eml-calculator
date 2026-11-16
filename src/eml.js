@@ -53,10 +53,18 @@ function tokenize(src) {
     if (/[a-zA-Z]/.test(ch)) {
       let j = i;
       while (j < src.length && /[a-zA-Z]/.test(src[j])) j++;
-      const word = src.slice(i, j).toLowerCase();
-      if (word === 'e') out.push({ t: 'e', pos: i });
-      else if (word === 'ln' || word === 'exp') out.push({ t: 'fn', v: word, pos: i });
-      else throw new EmlError('unknown_word', { pos: i, word: src.slice(i, j) });
+      const run = src.slice(i, j);
+      const lower = run.toLowerCase();
+      // split the letter run into known words: exp, ln, e, and x (= times)
+      let k = 0;
+      while (k < lower.length) {
+        const w = ['exp', 'ln', 'e', 'x'].find((cand) => lower.startsWith(cand, k));
+        if (!w) throw new EmlError('unknown_word', { pos: i, word: run });
+        if (w === 'e') out.push({ t: 'e', pos: i + k });
+        else if (w === 'x') out.push({ t: 'op', v: '*', pos: i + k });
+        else out.push({ t: 'fn', v: w, pos: i + k });
+        k += w.length;
+      }
       i = j;
       continue;
     }
@@ -396,11 +404,32 @@ export function eml(a, b) {
 
 /** A stack machine with exactly two instructions: press1() and pressE(). */
 export class EmlMachine {
-  constructor() { this.reset(); }
+  /** @param {{history?: boolean}} [options] history: remember every step so it can be undone and explained */
+  constructor(options = {}) {
+    this.keepHistory = !!options.history;
+    this.reset();
+  }
   reset() {
     this.stack = [];
     this.program = '';
     this.count = 0;
+    this.history = this.keepHistory ? [] : null;
+  }
+  /** The most recent step {t:'1'} or {t:'E', a, b, r}, or null (needs history). */
+  get last() {
+    const h = this.history;
+    return h && h.length ? h[h.length - 1] : null;
+  }
+  /** Take back the last key press (needs history). Returns false if there is nothing to undo. */
+  undo() {
+    const h = this.history;
+    if (!h || !h.length) return false;
+    const e = h.pop();
+    this.stack.pop();
+    if (e.t === 'E') this.stack.push(e.a, e.b);
+    this.program = this.program.slice(0, -1);
+    this.count--;
+    return true;
   }
   get depth() { return this.stack.length; }
   /** Current top-of-stack value or null. */
@@ -410,6 +439,7 @@ export class EmlMachine {
   }
   press1() {
     this.stack.push([1, 0]);
+    if (this.history) this.history.push({ t: '1' });
     this.program += '1';
     this.count++;
     return true;
@@ -420,7 +450,9 @@ export class EmlMachine {
     if (st.length < 2) return false;
     const b = st.pop();
     const a = st.pop();
-    st.push(eml(a, b));
+    const r = eml(a, b);
+    st.push(r);
+    if (this.history) this.history.push({ t: 'E', a, b, r });
     this.program += 'E';
     this.count++;
     return true;

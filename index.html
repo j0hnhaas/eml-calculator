@@ -51,6 +51,32 @@
           <button type="button" class="key key-one" id="keyOne" aria-label="Taste 1" data-i18n-aria="key.one">1</button>
           <button type="button" class="key key-eml" id="keyEml" aria-label="Taste EML" data-i18n-aria="key.eml">EML</button>
         </div>
+        <p class="kbd-hint" data-i18n="device.kbd"></p>
+      </section>
+
+      <section class="stepper" id="stepper" hidden aria-labelledby="stepTitle">
+        <div class="stepper-head">
+          <h2 id="stepTitle" data-i18n="step.title">Einzelschritt</h2>
+          <span class="step-counter" id="stepCounter"></span>
+          <button type="button" class="btn btn-ghost btn-small" id="stepClose" data-i18n="step.close">Beenden</button>
+        </div>
+        <div class="stepper-body">
+          <div class="stack-box">
+            <span class="chips-label" data-i18n="step.stack">Stapel</span>
+            <ol class="stack" id="stackList"></ol>
+          </div>
+          <div class="explain">
+            <p id="stepExplain" aria-live="polite"></p>
+            <p class="step-next" id="stepNextHint"></p>
+          </div>
+        </div>
+        <div class="stepper-controls">
+          <button type="button" class="btn btn-secondary btn-small" id="stepStart" data-i18n="step.btn.start">Anfang</button>
+          <button type="button" class="btn btn-secondary btn-small" id="stepBack" data-i18n="step.btn.back">Zurück</button>
+          <button type="button" class="btn btn-primary btn-small" id="stepNext" data-i18n="step.btn.next">Weiter</button>
+          <button type="button" class="btn btn-secondary btn-small" id="stepPlay" data-i18n="step.btn.play">Auto</button>
+          <button type="button" class="btn btn-secondary btn-small" id="stepEnd" data-i18n="step.btn.end">Ende</button>
+        </div>
       </section>
 
       <form class="task" id="taskForm" autocomplete="off" novalidate>
@@ -59,6 +85,7 @@
           <input id="taskInput" type="text" inputmode="text" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="z. B. 12×(5−2)" data-i18n-placeholder="form.placeholder" aria-describedby="taskHint taskError">
           <button type="submit" class="btn btn-primary" id="runBtn" data-i18n="form.run">Rechnen</button>
         </div>
+        <p class="task-live" id="taskLive"></p>
         <p class="task-hint" id="taskHint" data-i18n="form.hint">Erlaubt: Zahlen, + − × ÷ ^, Klammern, e, ln( ), exp( )</p>
         <p class="task-error" id="taskError" role="alert"></p>
 
@@ -70,7 +97,10 @@
           <span class="chips-label" data-i18n="form.examples">Beispiele</span>
           <div class="chips" id="exampleChips"></div>
         </div>
-        <button type="button" class="btn btn-ghost" id="resetBtn" data-i18n="form.reset">Zurücksetzen</button>
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary" id="stepBtn" data-i18n="form.step">Schritt für Schritt</button>
+          <button type="button" class="btn btn-ghost" id="resetBtn" data-i18n="form.reset">Zurücksetzen</button>
+        </div>
       </form>
 
       <p class="note" id="note" role="status" aria-live="polite"></p>
@@ -88,6 +118,7 @@
           <li data-i18n-html="info.how.2"></li>
           <li data-i18n-html="info.how.3"></li>
           <li data-i18n-html="info.how.4"></li>
+          <li data-i18n-html="info.how.5"></li>
         </ol>
 
         <h3 data-i18n="info.blocks.h">Die Bausteine</h3>

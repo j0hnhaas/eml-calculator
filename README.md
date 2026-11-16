@@ -39,6 +39,12 @@ x ^ y  = exp(y · ln x)
 
 Die Auswertung läuft in komplexer Arithmetik (Hauptwert) mit `ln 0 = −∞`. Extrem große oder kleine Zwischenwerte (`exp(y)` in der Subtraktion!) werden logarithmisch weitergeführt, damit nichts überläuft. Zur Kontrolle wird jede Aufgabe zusätzlich gewöhnlich gerechnet und verglichen.
 
+## Bedienung / Usage
+
+- **Eingabe:** `+ − × ÷ ^`, auch `* / : x`; unter dem Feld steht live, wie viele Tasten das Programm hat (oder was noch fehlt). / Also `* / : x`; a live line shows the program length or what is missing.
+- **Tastatur:** `1` und `E` drücken die beiden Tasten (wenn das Eingabefeld nicht aktiv ist). / `1` and `E` press the two keys.
+- **Schritt für Schritt:** Programm vor/zurück/automatisch durchgehen, Stapel und Erklärung pro Schritt; die nächste Taste leuchtet und kann selbst gedrückt werden, Pfeiltasten gehen vor und zurück. / Step through the program with the stack and an explanation per step; the next key glows and can be pressed yourself.
+
 ## URL-Parameter
 
 | Parameter | Wirkung / Effect |

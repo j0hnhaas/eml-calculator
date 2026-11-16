@@ -109,6 +109,45 @@ test('operator spellings and decimal comma', () => {
   assert.equal(val('2**3'), '8');
 });
 
+test('x (and X) work as times', () => {
+  assert.equal(val('3x4'), '12');
+  assert.equal(val('3 X 4'), '12');
+  assert.equal(val('2x(1+1)'), '4');
+  assert.equal(val('2xln(e)'), '2');
+  assert.equal(val('2xe'), '5.436563657');
+  assert.throws(() => parse('x3'), (e) => e.code === 'unexpected_token');
+  assert.throws(() => parse('3xy'), (e) => e.code === 'unknown_word');
+});
+
+test('machine history: undo restores every earlier state', () => {
+  const program = compile('12*(5-2)+ln(e)');
+  const m = new EmlMachine({ history: true });
+  const snaps = [];
+  for (const t of program) {
+    snaps.push(JSON.stringify(m.stack));
+    assert.ok(m.press(t));
+  }
+  assert.equal(m.depth, 1);
+  for (let i = program.length - 1; i >= 0; i--) {
+    assert.ok(m.undo());
+    assert.equal(JSON.stringify(m.stack), snaps[i]);
+    assert.equal(m.program, program.slice(0, i));
+    assert.equal(m.count, i);
+  }
+  assert.equal(m.undo(), false);
+  assert.equal(m.last, null);
+});
+
+test('machine history: last step carries the operands', () => {
+  const m = new EmlMachine({ history: true });
+  m.press1(); m.press1(); m.pressE();
+  const last = m.last;
+  assert.equal(last.t, 'E');
+  assert.deepEqual(last.a, [1, 0]);
+  assert.deepEqual(last.b, [1, 0]);
+  assert.ok(Math.abs(last.r[0] - Math.E) < 1e-15); // eml(1,1) = e
+});
+
 test('stats count keys', () => {
   const s = stats('11E');
   assert.deepEqual(s, { length: 3, ones: 2, emls: 1 });
