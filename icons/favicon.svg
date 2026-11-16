@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="EML">
-  <rect width="64" height="64" rx="14" fill="#d9d5ca"/>
-  <rect x="8" y="8" width="48" height="23" rx="3.5" fill="#292b28"/>
-  <rect x="10.5" y="10.5" width="43" height="18" rx="2" fill="#b5c4a1"/>
-  <text x="32" y="24" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-weight="700" font-size="12" fill="#18231a">11E1E</text>
-  <rect x="8" y="37" width="22" height="18" rx="4" fill="#3a3c41"/>
-  <rect x="34" y="37" width="22" height="18" rx="4" fill="#e0541f"/>
+  <rect width="64" height="64" rx="14" fill="#26282e"/>
+  <rect x="8" y="8" width="48" height="23" rx="3.5" fill="#060606"/>
+  <rect x="10.5" y="10.5" width="43" height="18" rx="2" fill="#1e0f04"/>
+  <text x="32" y="24" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-weight="700" font-size="12" fill="#ffb23e">11E1E</text>
+  <rect x="8" y="37" width="22" height="18" rx="4" fill="#585b63"/>
+  <rect x="34" y="37" width="22" height="18" rx="4" fill="#f59628"/>
   <text x="19" y="50" text-anchor="middle" font-family="system-ui,Arial,sans-serif" font-weight="800" font-size="13" fill="#f4f1ea">1</text>
-  <text x="45" y="50" text-anchor="middle" font-family="system-ui,Arial,sans-serif" font-weight="800" font-size="13" fill="#fff">E</text>
+  <text x="45" y="50" text-anchor="middle" font-family="system-ui,Arial,sans-serif" font-weight="800" font-size="13" fill="#1d0e02">E</text>
 </svg>

@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>EML-Rechner – ein Operator, zwei Tasten</title>
   <meta name="description" content="Ein Taschenrechner mit nur zwei Tasten (1 und EML): Deine Rechenaufgabe erscheint als EML-Programm im Display und wird dort ausgerechnet.">
-  <meta name="theme-color" content="#16181c" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#ece8df" media="(prefers-color-scheme: light)">
-  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#0d0e10">
+  <meta name="color-scheme" content="dark">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -30,6 +29,7 @@
       <section class="device" aria-label="Taschenrechner mit zwei Tasten" data-i18n-aria="device.label">
         <div class="device-head">
           <span class="model">EML&#8209;1</span>
+          <span class="solar" aria-hidden="true"></span>
           <span class="formula" data-i18n="device.formula">eml(x, y) = eˣ − ln y</span>
         </div>
 
@@ -48,8 +48,14 @@
         </div>
 
         <div class="keys">
-          <button type="button" class="key key-one" id="keyOne" aria-label="Taste 1" data-i18n-aria="key.one">1</button>
-          <button type="button" class="key key-eml" id="keyEml" aria-label="Taste EML" data-i18n-aria="key.eml">EML</button>
+          <div class="keycell">
+            <button type="button" class="key key-one" id="keyOne" aria-label="Taste 1" data-i18n-aria="key.one">1</button>
+            <span class="key-sub" aria-hidden="true" data-i18n="key.one.sub">legt 1 auf den Stapel</span>
+          </div>
+          <div class="keycell">
+            <button type="button" class="key key-eml" id="keyEml" aria-label="Taste EML" data-i18n-aria="key.eml">EML</button>
+            <span class="key-sub" aria-hidden="true" data-i18n="key.eml.sub">exp(a) − ln(b)</span>
+          </div>
         </div>
         <p class="kbd-hint" data-i18n="device.kbd"></p>
       </section>
@@ -86,7 +92,6 @@
           <button type="submit" class="btn btn-primary" id="runBtn" data-i18n="form.run">Rechnen</button>
         </div>
         <p class="task-live" id="taskLive"></p>
-        <p class="task-hint" id="taskHint" data-i18n="form.hint">Erlaubt: Zahlen, + − × ÷ ^, Klammern, e, ln( ), exp( )</p>
         <p class="task-error" id="taskError" role="alert"></p>
 
         <div class="chips-block">
@@ -97,6 +102,10 @@
           <span class="chips-label" data-i18n="form.examples">Beispiele</span>
           <div class="chips" id="exampleChips"></div>
         </div>
+        <details class="allowed">
+          <summary data-i18n="form.allowed">Was ist erlaubt?</summary>
+          <p id="taskHint" data-i18n="form.hint">Erlaubt: Zahlen, + − × ÷ ^, Klammern, e, ln( ), exp( )</p>
+        </details>
         <div class="btn-row">
           <button type="button" class="btn btn-secondary" id="stepBtn" data-i18n="form.step">Schritt für Schritt</button>
           <button type="button" class="btn btn-ghost" id="resetBtn" data-i18n="form.reset">Zurücksetzen</button>
@@ -142,9 +151,9 @@
       <section class="links" aria-labelledby="linksTitle">
         <h2 id="linksTitle" data-i18n="links.title">Quellen &amp; Links</h2>
         <ul>
-          <li><a id="linkPaper" href="https://arxiv.org/abs/2603.21852" target="_blank" rel="noopener" data-i18n="links.paper">Paper</a></li>
-          <li><a id="linkVideo" href="https://youtu.be/LxVW3b8jVdE" target="_blank" rel="noopener" data-i18n="links.video">Video</a></li>
-          <li><a id="linkRepo" href="https://github.com/j0hnhaas/eml-calculator" target="_blank" rel="noopener" data-i18n="links.repo">Quellcode</a></li>
+          <li><a class="link-card" id="linkPaper" href="https://arxiv.org/abs/2603.21852" target="_blank" rel="noopener"><span class="link-kind">Paper · arXiv:2603.21852</span><span class="link-title" data-i18n="links.paper">Paper</span><span class="link-arrow" aria-hidden="true">↗</span></a></li>
+          <li><a class="link-card" id="linkVideo" href="https://youtu.be/LxVW3b8jVdE" target="_blank" rel="noopener"><span class="link-kind">Video · YouTube</span><span class="link-title" data-i18n="links.video">Video</span><span class="link-arrow" aria-hidden="true">↗</span></a></li>
+          <li><a class="link-card" id="linkRepo" href="https://github.com/j0hnhaas/eml-calculator" target="_blank" rel="noopener"><span class="link-kind">Code · GitHub</span><span class="link-title" data-i18n="links.repo">Quellcode</span><span class="link-arrow" aria-hidden="true">↗</span></a></li>
         </ul>
       </section>
     </main>
