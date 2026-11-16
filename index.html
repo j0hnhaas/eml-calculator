@@ -20,7 +20,10 @@
         <button type="button" class="lang-btn" data-lang="de" aria-pressed="true">DE</button>
         <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
       </div>
-      <h1 data-i18n="app.title">EML-Rechner</h1>
+      <div class="top-row">
+        <h1 data-i18n="app.title">EML-Rechner</h1>
+        <p class="slogan" data-i18n="app.tagline">Ein Operator. Zwei Tasten. Jede Rechnung.</p>
+      </div>
       <p class="homage">
         <span data-i18n="homage.pre">Eine Hommage an die</span>
         <a data-link="paper" href="https://arxiv.org/abs/2603.21852" target="_blank" rel="noopener" data-i18n="homage.paper">EML-Arithmetik von Andrzej Odrzywołek</a>
@@ -39,15 +42,29 @@
           </div>
 
           <div class="lcd" id="lcd" role="group" aria-label="Display" data-i18n-aria="lcd.label">
-            <div class="lcd-bar">
+            <div class="lcd-top" aria-hidden="true">
+              <div class="ann">
+                <span class="print" id="annManual" data-i18n="lcd.manual">Manuell</span>
+                <span class="print" id="annAuto" data-i18n="lcd.auto">Automatik</span>
+              </div>
+              <div class="counters">
+                <div class="cnt"><span class="print" data-i18n="lcd.keys">Tasten</span><span class="seg" id="segKeys"></span></div>
+                <div class="cnt"><span class="print" data-i18n="lcd.stack">Stapel</span><span class="seg" id="segStack"></span></div>
+              </div>
+            </div>
+            <div class="lcd-input">
+              <span class="print" data-i18n="lcd.input">Eingabe</span>
               <span class="lcd-task" id="lcdTask"></span>
-              <span class="lcd-meta" id="lcdMeta"></span>
             </div>
             <pre class="lcd-prog" id="lcdProg" tabindex="0" aria-hidden="true"></pre>
-            <div class="lcd-empty" id="lcdEmpty" data-i18n="lcd.empty">Aufgabe eingeben – oder selbst die Tasten drücken</div>
-            <div class="lcd-result" aria-hidden="true">
-              <span class="lcd-ghost" id="lcdGhost">8888888888</span>
-              <span class="lcd-value" id="lcdValue">0</span>
+            <div class="lcd-empty" id="lcdEmpty" aria-hidden="true" data-i18n="lcd.empty">Aufgabe eingeben oder Tasten drücken</div>
+            <div class="scribe" aria-hidden="true"></div>
+            <div class="lcd-out" aria-hidden="true">
+              <span class="print" data-i18n="lcd.result">Ergebnis</span>
+              <div class="lcd-result">
+                <span class="seg seg-result" id="segResult"></span>
+                <span class="lcd-value" id="lcdValue"></span>
+              </div>
             </div>
             <p class="sr-only" id="srResult" role="status" aria-live="polite"></p>
           </div>

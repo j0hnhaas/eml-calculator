@@ -1,12 +1,14 @@
 import {
   EmlError, EmlMachine, SPAN_TAGS, calculate, cleanResult, compile, formatResult,
 } from './eml.js';
+import { drawCount, drawSegments, fitSegments } from './seg.js';
 import { BLOCKS, LINKS, SEG_FORMULA, SHORT_BLOCKS, STRINGS, detectLang, makeT } from './i18n.js';
 
 const $ = (id) => document.getElementById(id);
 const el = {
-  lcd: $('lcd'), task: $('lcdTask'), meta: $('lcdMeta'), prog: $('lcdProg'), empty: $('lcdEmpty'),
-  value: $('lcdValue'), ghost: $('lcdGhost'), sr: $('srResult'),
+  lcd: $('lcd'), task: $('lcdTask'), prog: $('lcdProg'), empty: $('lcdEmpty'),
+  value: $('lcdValue'), segResult: $('segResult'), segKeys: $('segKeys'), segStack: $('segStack'),
+  annManual: $('annManual'), annAuto: $('annAuto'), sr: $('srResult'),
   keyOne: $('keyOne'), keyEml: $('keyEml'),
   form: $('taskForm'), input: $('taskInput'), error: $('taskError'), live: $('taskLive'), note: $('note'),
   stepBtn: $('stepBtn'), stepper: $('stepper'), stepCounter: $('stepCounter'), stack: $('stackList'),
@@ -131,24 +133,55 @@ function valueText(item, live) {
   return formatResult(res, decimal());
 }
 
+const RESULT_CELLS = 10;
+const KEY_CELLS = 5;
+const STACK_CELLS = 2;
+let segSig = '';
+
 function renderValue() {
   const text = valueText(view.item, view.live);
-  el.value.textContent = text;
+  const cells = fitSegments(text, RESULT_CELLS);
   el.value.classList.toggle('is-live', view.live);
+  el.segResult.classList.toggle('is-live', view.live);
+  el.segResult.hidden = !cells;
+  el.value.hidden = !!cells;
+  if (cells) {
+    const sig = `r|${cells.map((c) => c.ch + (c.point ? '.' : '')).join('')}`;
+    if (sig !== segSig) { segSig = sig; drawSegments(el.segResult, cells, RESULT_CELLS); }
+    el.value.textContent = '';
+    return;
+  }
+  segSig = '';
+  el.value.textContent = text;
   el.value.classList.remove('len-m', 'len-l', 'len-xl');
   if (text.length > 22) el.value.classList.add('len-xl');
   else if (text.length > 16) el.value.classList.add('len-l');
   else if (text.length > 10) el.value.classList.add('len-m');
 }
 
+let countSig = '';
+function renderCounters() {
+  const n = machine.count;
+  const d = machine.depth;
+  const sig = `${n}|${d}`;
+  if (sig === countSig) return;
+  countSig = sig;
+  drawCount(el.segKeys, n, KEY_CELLS);
+  drawCount(el.segStack, d, STACK_CELLS);
+}
+
 function renderLcd() {
   const manual = view.mode === 'manual';
   const stepping = view.mode === 'step';
-  el.task.textContent = manual ? t('lcd.manual') : (view.task ? view.task + ' =' : '');
+  const auto = view.mode === 'running' || view.mode === 'done' || stepping;
+  el.task.textContent = auto ? view.task : '';
+  el.annManual.classList.toggle('on', manual);
+  el.annAuto.classList.toggle('on', auto);
   const n = machine.count;
-  if (stepping) el.meta.textContent = `${n}/${step.program.length} · ${t('lcd.stack')} ${machine.depth}`;
-  else el.meta.textContent = n ? `${n} ${t('lcd.keys')} · ${t('lcd.stack')} ${machine.depth}` : '';
-  el.empty.hidden = n > 0 || view.mode === 'running' || stepping;
+  el.empty.hidden = n > 0 || view.mode === 'running' || stepping || manual;
+  // the blinking cursor sits where the next key will appear
+  el.prog.classList.toggle('typing', view.mode === 'idle' || manual || view.mode === 'running');
+  renderCounters();
   renderValue();
   renderLegend();
   renderModeHint();
@@ -187,7 +220,6 @@ const useColors = () => colors.on && !!view.spans && (view.mode === 'done' || vi
 
 function setProgramText(running) {
   const full = machine.program;
-  el.prog.classList.toggle('typing', running);
   if (!running && view.mode === 'done' && useColors()) {
     const frag = document.createDocumentFragment();
     paintRuns(frag, view.spans, 0, full.length);

@@ -1,5 +1,5 @@
 /* Service worker: precache the app shell and serve it offline. Bump VERSION to ship an update. */
-const VERSION = 'eml-calculator-v8';
+const VERSION = 'eml-calculator-v9';
 const SHELL = [
   './',
   'index.html',
@@ -8,6 +8,7 @@ const SHELL = [
   'src/app.js',
   'src/eml.js',
   'src/i18n.js',
+  'src/seg.js',
   'manifest.webmanifest',
   'icons/favicon.svg',
   'icons/icon-192.png',
