@@ -1,0 +1,182 @@
+/* German / English strings. Values containing markup are static and written by us (used via innerHTML). */
+
+export const LINKS = {
+  paper: 'https://arxiv.org/abs/2603.21852',
+  video: 'https://youtu.be/LxVW3b8jVdE',
+  repo: 'https://github.com/j0hnhaas/eml-calculator',
+};
+
+export const STRINGS = {
+  de: {
+    'doc.title': 'EML-Rechner – ein Operator, zwei Tasten',
+    'doc.description': 'Ein Taschenrechner mit nur zwei Tasten (1 und EML): Deine Rechenaufgabe erscheint als EML-Programm im Display und wird dort ausgerechnet. Nach dem Paper „All elementary functions from a single operator“.',
+    'app.title': 'EML-Rechner',
+    'app.tagline': 'Ein Operator. Zwei Tasten. Jede Rechnung.',
+    'lang.switch': 'Sprache',
+
+    'device.label': 'Taschenrechner mit zwei Tasten',
+    'device.formula': 'eml(x, y) = eˣ − ln y',
+    'lcd.label': 'Display',
+    'lcd.empty': 'Aufgabe eingeben – oder selbst die Tasten drücken',
+    'lcd.keys': 'Tasten',
+    'lcd.stack': 'Stapel',
+    'lcd.manual': 'Handbetrieb',
+    'lcd.skipHint': 'Antippen zum Überspringen',
+    'key.one': 'Taste 1: legt eine 1 auf den Stapel',
+    'key.eml': 'Taste EML: nimmt zwei Werte a, b vom Stapel und legt exp(a) − ln(b) zurück',
+
+    'form.task': 'Rechenaufgabe',
+    'form.placeholder': 'z. B. 12×(5−2)',
+    'form.run': 'Rechnen',
+    'form.reset': 'Zurücksetzen',
+    'form.examples': 'Beispiele',
+    'form.symbols': 'Zeichen einfügen',
+    'form.hint': 'Erlaubt: Zahlen, + − × ÷ ^, Klammern, e, ln( ), exp( )',
+
+    'note.ok': 'Kontrolle: Eine gewöhnliche Rechnung ergibt dasselbe ({v}).',
+    'note.diff': 'Achtung: Eine gewöhnliche Rechnung ergibt {v}. Die reine EML-Rechnung ist hier an die Grenzen der Gleitkommagenauigkeit gestoßen.',
+    'note.inf': 'Ergebnis unendlich – z. B. Division durch 0.',
+    'note.nan': 'Nicht definiert (z. B. 0^0).',
+    'note.huge': 'Das Ergebnis liegt außerhalb des normalen Zahlenbereichs und wurde logarithmisch berechnet.',
+    'note.manual': 'Handbetrieb: Mit 1 und EML baust du selbst ein Programm.',
+    'note.errKey': 'EML braucht zwei Werte auf dem Stapel – erst zweimal 1 drücken.',
+    'note.done': 'Fertig.',
+
+    'err.empty': 'Bitte eine Rechenaufgabe eingeben.',
+    'err.unexpected_char': 'Unerwartetes Zeichen „{ch}“ an Stelle {n}.',
+    'err.unexpected_token': 'Unerwartetes Zeichen an Stelle {n}.',
+    'err.unexpected_end': 'Die Aufgabe ist unvollständig.',
+    'err.expected_paren': 'Nach „{word}“ fehlt eine öffnende Klammer.',
+    'err.missing_rparen': 'Eine schließende Klammer fehlt.',
+    'err.bad_number': 'Ungültige Zahl an Stelle {n}.',
+    'err.number_too_long': 'Zahl zu lang (höchstens 12 Ziffern).',
+    'err.unknown_word': '„{word}“ kenne ich nicht. Erlaubt sind e, ln( ) und exp( ).',
+    'err.too_long': 'Das EML-Programm wäre zu lang ({n} Tasten, erlaubt sind 300 000).',
+    'err.internal': 'Unerwarteter Fehler.',
+
+    'info.title': 'Info',
+    'info.what.h': 'Worum geht es?',
+    'info.what.p1': 'Der Physiker Andrzej Odrzywołek hat 2026 gezeigt: Der eine Operator <code>eml(x, y) = e<sup>x</sup> − ln y</code> erzeugt zusammen mit der Konstanten 1 alles, was ein wissenschaftlicher Taschenrechner kann – Grundrechenarten, Potenzen, e, π, i, Winkelfunktionen und mehr. So wie das NAND-Gatter in der Digitaltechnik reicht, braucht auch die „stetige“ Mathematik nur ein einziges Bauteil.',
+    'info.what.p2': 'Jeder Ausdruck wird dadurch zu einem Binärbaum aus lauter gleichen Knoten (Grammatik <code>S → 1 | eml(S, S)</code>). Ein Taschenrechner kommt deshalb mit zwei Tasten aus: <strong>1</strong> und <strong>EML</strong>.',
+    'info.how.h': 'So rechnet dieser Rechner',
+    'info.how.1': 'Deine Aufgabe wird gelesen und jede Rechenoperation durch ihre eml-Formel ersetzt. Auch Zahlen werden nur aus 1en gebaut (2 = 1 + 1, 3 = 2 + 1, …).',
+    'info.how.2': 'Heraus kommt eine Folge aus nur zwei Zeichen: <code>1</code> und <code>E</code> (für EML) in umgekehrter polnischer Notation. Genau das siehst du im Display.',
+    'info.how.3': 'Der Rechner tippt diese Folge ab. „1“ legt eine 1 auf den Stapel; „EML“ nimmt die obersten zwei Werte a und b und legt exp(a) − ln(b) zurück. Am Ende bleibt das Ergebnis übrig.',
+    'info.how.4': 'Zur Kontrolle wird die Aufgabe zusätzlich auf gewöhnliche Weise gerechnet und verglichen.',
+    'info.blocks.h': 'Die Bausteine',
+    'info.blocks.th1': 'Operation',
+    'info.blocks.th2': 'als eml-Formel',
+    'info.blocks.note': 'Dabei gilt ln 0 = −∞ und e<sup>−∞</sup> = 0. Diese Formeln sind nicht die kürzesten: Im Paper werden für + und × per Suche gefundene Formeln mit nur 19 bzw. 17 Zeichen genannt.',
+    'info.good.h': 'Gut zu wissen',
+    'info.good.1': 'Intern wird mit komplexen Zahlen gerechnet: ln(−1) ergibt iπ. Deshalb liefert z. B. (−8)^(1/3) den Hauptwert 1 + 1,732i.',
+    'info.good.2': 'Gerechnet wird in Gleitkommazahlen, angezeigt werden etwa 10 Stellen. Sehr große oder kleine Zwischenwerte werden logarithmisch weitergeführt, damit nichts überläuft.',
+    'info.good.3': 'Zahlen müssen aus 1en gebaut werden: 100 braucht rund 350 Tasten, 3,14159 knapp 2000. Erlaubt sind Zahlen mit bis zu 12 Ziffern und höchstens 300 000 Tasten pro Aufgabe.',
+    'info.good.4': 'Das ist eine unabhängige Umsetzung und stammt nicht vom Autor des Papers. Der Rechner funktioniert nach dem ersten Laden auch offline und lässt sich als App installieren.',
+    'links.title': 'Quellen & Links',
+    'links.paper': 'Paper: A. Odrzywołek, „All elementary functions from a single operator“ (arXiv:2603.21852)',
+    'links.video': 'Video zum Paper (YouTube)',
+    'links.repo': 'Quellcode auf GitHub',
+    'footer.text': 'Freie Software (MIT-Lizenz). Anonyme, cookiefreie Besucherstatistik mit GoatCounter.',
+  },
+
+  en: {
+    'doc.title': 'EML Calculator – one operator, two keys',
+    'doc.description': 'A calculator with just two keys (1 and EML): your sum appears as an EML program on the display and is computed there. After the paper “All elementary functions from a single operator”.',
+    'app.title': 'EML Calculator',
+    'app.tagline': 'One operator. Two keys. Any calculation.',
+    'lang.switch': 'Language',
+
+    'device.label': 'Calculator with two keys',
+    'device.formula': 'eml(x, y) = eˣ − ln y',
+    'lcd.label': 'Display',
+    'lcd.empty': 'Enter a sum – or press the keys yourself',
+    'lcd.keys': 'keys',
+    'lcd.stack': 'stack',
+    'lcd.manual': 'manual',
+    'lcd.skipHint': 'Tap to skip',
+    'key.one': 'Key 1: pushes a 1 onto the stack',
+    'key.eml': 'Key EML: pops two values a, b and pushes exp(a) − ln(b)',
+
+    'form.task': 'Sum to calculate',
+    'form.placeholder': 'e.g. 12×(5−2)',
+    'form.run': 'Calculate',
+    'form.reset': 'Reset',
+    'form.examples': 'Examples',
+    'form.symbols': 'Insert symbol',
+    'form.hint': 'Allowed: numbers, + − × ÷ ^, parentheses, e, ln( ), exp( )',
+
+    'note.ok': 'Check: an ordinary calculation gives the same result ({v}).',
+    'note.diff': 'Careful: an ordinary calculation gives {v}. The pure EML computation hit the limits of floating-point precision here.',
+    'note.inf': 'Result is infinite – e.g. division by 0.',
+    'note.nan': 'Undefined (e.g. 0^0).',
+    'note.huge': 'The result is outside the normal number range and was computed logarithmically.',
+    'note.manual': 'Manual mode: build your own program with 1 and EML.',
+    'note.errKey': 'EML needs two values on the stack – press 1 twice first.',
+    'note.done': 'Done.',
+
+    'err.empty': 'Please enter a sum.',
+    'err.unexpected_char': 'Unexpected character “{ch}” at position {n}.',
+    'err.unexpected_token': 'Unexpected character at position {n}.',
+    'err.unexpected_end': 'The sum is incomplete.',
+    'err.expected_paren': 'An opening parenthesis is missing after “{word}”.',
+    'err.missing_rparen': 'A closing parenthesis is missing.',
+    'err.bad_number': 'Invalid number at position {n}.',
+    'err.number_too_long': 'Number too long (at most 12 digits).',
+    'err.unknown_word': 'I don’t know “{word}”. Allowed are e, ln( ) and exp( ).',
+    'err.too_long': 'The EML program would be too long ({n} keys, limit is 300,000).',
+    'err.internal': 'Unexpected error.',
+
+    'info.title': 'Info',
+    'info.what.h': 'What is this about?',
+    'info.what.p1': 'In 2026 the physicist Andrzej Odrzywołek showed that the single operator <code>eml(x, y) = e<sup>x</sup> − ln y</code>, together with the constant 1, generates everything a scientific calculator can do – arithmetic, powers, e, π, i, trigonometric functions and more. Just as the NAND gate suffices in digital electronics, continuous mathematics needs only one building block.',
+    'info.what.p2': 'Every expression becomes a binary tree of identical nodes (grammar <code>S → 1 | eml(S, S)</code>). So a calculator gets by with two keys: <strong>1</strong> and <strong>EML</strong>.',
+    'info.how.h': 'How this calculator works',
+    'info.how.1': 'Your sum is parsed and every operation is replaced by its eml formula. Numbers are built from 1s only (2 = 1 + 1, 3 = 2 + 1, …).',
+    'info.how.2': 'The result is a sequence of just two symbols: <code>1</code> and <code>E</code> (for EML) in reverse Polish notation. That is exactly what you see on the display.',
+    'info.how.3': 'The calculator then “types” that sequence. “1” pushes a 1 onto the stack; “EML” takes the top two values a and b and pushes exp(a) − ln(b). What is left at the end is the result.',
+    'info.how.4': 'As a check, the sum is also computed the ordinary way and compared.',
+    'info.blocks.h': 'The building blocks',
+    'info.blocks.th1': 'Operation',
+    'info.blocks.th2': 'as an eml formula',
+    'info.blocks.note': 'Here ln 0 = −∞ and e<sup>−∞</sup> = 0. These formulas are not the shortest: the paper reports formulas found by search with only 19 symbols for + and 17 for ×.',
+    'info.good.h': 'Good to know',
+    'info.good.1': 'Complex numbers are used internally: ln(−1) gives iπ. So (−8)^(1/3), for example, returns the principal value 1 + 1.732i.',
+    'info.good.2': 'Calculations use floating point and about 10 digits are shown. Very large or small intermediate values are carried on logarithmically so nothing overflows.',
+    'info.good.3': 'Numbers have to be built from 1s: 100 needs about 350 keys, 3.14159 almost 2000. Numbers may have up to 12 digits and a program at most 300,000 keys.',
+    'info.good.4': 'This is an independent implementation, not by the author of the paper. After the first load the calculator also works offline and can be installed as an app.',
+    'links.title': 'Sources & links',
+    'links.paper': 'Paper: A. Odrzywołek, “All elementary functions from a single operator” (arXiv:2603.21852)',
+    'links.video': 'Video about the paper (YouTube)',
+    'links.repo': 'Source code on GitHub',
+    'footer.text': 'Free software (MIT licence). Anonymous, cookie-free visitor statistics with GoatCounter.',
+  },
+};
+
+/** Operations shown in the info table: [label, eml formula]. */
+export const BLOCKS = [
+  ['e', 'eml(1, 1)'],
+  ['eˣ', 'eml(x, 1)'],
+  ['ln x', 'eml(1, eml(eml(1, x), 1))'],
+  ['0', 'ln 1'],
+  ['x − y', 'eml(ln x, eʸ)'],
+  ['−y', 'eml(ln 0, eʸ)'],
+  ['x + y', 'x − (−y)'],
+  ['1/y', 'eml(eml(ln 0, y), 1)'],
+  ['x ÷ y', 'eml(eml(ln ln x, y), 1)'],
+  ['x × y', 'x ÷ (1/y)'],
+  ['xʸ', 'e^(y · ln x)'],
+];
+
+export function detectLang() {
+  const nav = (navigator.languages && navigator.languages[0]) || navigator.language || 'en';
+  return /^de\b/i.test(nav) ? 'de' : 'en';
+}
+
+export function makeT(lang) {
+  const table = STRINGS[lang] || STRINGS.en;
+  return (key, vars) => {
+    let s = table[key] ?? STRINGS.en[key] ?? key;
+    if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll('{' + k + '}', String(v));
+    return s;
+  };
+}

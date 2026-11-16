@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>EML-Rechner – ein Operator, zwei Tasten</title>
+  <meta name="description" content="Ein Taschenrechner mit nur zwei Tasten (1 und EML): Deine Rechenaufgabe erscheint als EML-Programm im Display und wird dort ausgerechnet.">
+  <meta name="theme-color" content="#16181c" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ece8df" media="(prefers-color-scheme: light)">
+  <meta name="color-scheme" content="light dark">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <div class="brand">
+        <h1 data-i18n="app.title">EML-Rechner</h1>
+        <p class="tagline" data-i18n="app.tagline">Ein Operator. Zwei Tasten. Jede Rechnung.</p>
+      </div>
+      <div class="lang" role="group" aria-label="Sprache / Language" data-i18n-aria="lang.switch">
+        <button type="button" class="lang-btn" data-lang="de" aria-pressed="true">DE</button>
+        <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="device" aria-label="Taschenrechner mit zwei Tasten" data-i18n-aria="device.label">
+        <div class="device-head">
+          <span class="model">EML&#8209;1</span>
+          <span class="formula" data-i18n="device.formula">eml(x, y) = eˣ − ln y</span>
+        </div>
+
+        <div class="lcd" id="lcd" role="group" aria-label="Display" data-i18n-aria="lcd.label">
+          <div class="lcd-bar">
+            <span class="lcd-task" id="lcdTask"></span>
+            <span class="lcd-meta" id="lcdMeta"></span>
+          </div>
+          <pre class="lcd-prog" id="lcdProg" tabindex="0" aria-hidden="true"></pre>
+          <div class="lcd-empty" id="lcdEmpty" data-i18n="lcd.empty">Aufgabe eingeben – oder selbst die Tasten drücken</div>
+          <div class="lcd-result" aria-hidden="true">
+            <span class="lcd-ghost" id="lcdGhost">8888888888</span>
+            <span class="lcd-value" id="lcdValue">0</span>
+          </div>
+          <p class="sr-only" id="srResult" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="keys">
+          <button type="button" class="key key-one" id="keyOne" aria-label="Taste 1" data-i18n-aria="key.one">1</button>
+          <button type="button" class="key key-eml" id="keyEml" aria-label="Taste EML" data-i18n-aria="key.eml">EML</button>
+        </div>
+      </section>
+
+      <form class="task" id="taskForm" autocomplete="off" novalidate>
+        <label for="taskInput" data-i18n="form.task">Rechenaufgabe</label>
+        <div class="task-row">
+          <input id="taskInput" type="text" inputmode="text" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="z. B. 12×(5−2)" data-i18n-placeholder="form.placeholder" aria-describedby="taskHint taskError">
+          <button type="submit" class="btn btn-primary" id="runBtn" data-i18n="form.run">Rechnen</button>
+        </div>
+        <p class="task-hint" id="taskHint" data-i18n="form.hint">Erlaubt: Zahlen, + − × ÷ ^, Klammern, e, ln( ), exp( )</p>
+        <p class="task-error" id="taskError" role="alert"></p>
+
+        <div class="chips-block">
+          <span class="chips-label" data-i18n="form.symbols">Zeichen einfügen</span>
+          <div class="chips" id="symbolChips"></div>
+        </div>
+        <div class="chips-block">
+          <span class="chips-label" data-i18n="form.examples">Beispiele</span>
+          <div class="chips" id="exampleChips"></div>
+        </div>
+        <button type="button" class="btn btn-ghost" id="resetBtn" data-i18n="form.reset">Zurücksetzen</button>
+      </form>
+
+      <p class="note" id="note" role="status" aria-live="polite"></p>
+
+      <section class="info" id="info" aria-labelledby="infoTitle">
+        <h2 id="infoTitle" data-i18n="info.title">Info</h2>
+
+        <h3 data-i18n="info.what.h">Worum geht es?</h3>
+        <p data-i18n-html="info.what.p1"></p>
+        <p data-i18n-html="info.what.p2"></p>
+
+        <h3 data-i18n="info.how.h">So rechnet dieser Rechner</h3>
+        <ol>
+          <li data-i18n-html="info.how.1"></li>
+          <li data-i18n-html="info.how.2"></li>
+          <li data-i18n-html="info.how.3"></li>
+          <li data-i18n-html="info.how.4"></li>
+        </ol>
+
+        <h3 data-i18n="info.blocks.h">Die Bausteine</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col" data-i18n="info.blocks.th1">Operation</th><th scope="col" data-i18n="info.blocks.th2">als eml-Formel</th></tr></thead>
+            <tbody id="blocksBody"></tbody>
+          </table>
+        </div>
+        <p class="small" data-i18n-html="info.blocks.note"></p>
+
+        <h3 data-i18n="info.good.h">Gut zu wissen</h3>
+        <ul>
+          <li data-i18n-html="info.good.1"></li>
+          <li data-i18n-html="info.good.2"></li>
+          <li data-i18n-html="info.good.3"></li>
+          <li data-i18n-html="info.good.4"></li>
+        </ul>
+      </section>
+
+      <section class="links" aria-labelledby="linksTitle">
+        <h2 id="linksTitle" data-i18n="links.title">Quellen &amp; Links</h2>
+        <ul>
+          <li><a id="linkPaper" href="https://arxiv.org/abs/2603.21852" target="_blank" rel="noopener" data-i18n="links.paper">Paper</a></li>
+          <li><a id="linkVideo" href="https://youtu.be/LxVW3b8jVdE" target="_blank" rel="noopener" data-i18n="links.video">Video</a></li>
+          <li><a id="linkRepo" href="https://github.com/j0hnhaas/eml-calculator" target="_blank" rel="noopener" data-i18n="links.repo">Quellcode</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p data-i18n="footer.text">Freie Software (MIT-Lizenz). Anonyme, cookiefreie Besucherstatistik mit GoatCounter.</p>
+    </footer>
+  </div>
+
+  <script type="module" src="src/app.js"></script>
+  <!-- GoatCounter: anonymous, cookie-free statistics -->
+  <script data-goatcounter="https://j0hnhaas.goatcounter.com/count" async src="https://gc.zgo.dev/count.js"></script>
+</body>
+</html>
