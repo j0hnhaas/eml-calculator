@@ -476,3 +476,6 @@ td:nth-child(3) code { color: var(--c-add); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+.foot-version { margin-top: 4px; font-size: 0.78rem; }
+.foot-version a { color: inherit; opacity: 0.8; text-underline-offset: 3px; }

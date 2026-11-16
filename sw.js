@@ -1,5 +1,5 @@
 /* Service worker: precache the app shell and serve it offline. Bump VERSION to ship an update. */
-const VERSION = 'eml-calculator-v9';
+const VERSION = 'eml-calculator-1.0.0';
 const SHELL = [
   './',
   'index.html',

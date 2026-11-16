@@ -97,3 +97,8 @@ Unabhängige Umsetzung, nicht vom Autor des Papers. / Independent implementation
 ## Lizenz / License
 
 MIT, siehe [LICENSE](LICENSE).
+
+## Versions · Versionen
+
+Releases are tagged `vMAJOR.MINOR.PATCH`. The number lives in `package.json` and must match the footer and the service-worker cache name (a test checks this). To release: bump all three, commit, tag, `gh release create`.
+Releases werden als `vMAJOR.MINOR.PATCH` getaggt. Die Nummer steht in `package.json` und muss zu Fußzeile und Service-Worker-Cache passen (ein Test prüft das).

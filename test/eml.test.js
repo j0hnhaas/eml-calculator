@@ -241,3 +241,11 @@ test('short formulas: fuzz agrees with ordinary evaluation', () => {
   }
   assert.ok(used > 500);
 });
+
+test('version is the same in package.json, the footer and the service worker', async () => {
+  const { readFileSync } = await import('node:fs');
+  const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
+  const v = JSON.parse(read('package.json')).version;
+  assert.match(read('index.html'), new RegExp(`releases/tag/v${v.replaceAll('.', '\\.')}"[^>]*>Version ${v.replaceAll('.', '\\.')}<`));
+  assert.ok(read('sw.js').includes(`eml-calculator-${v}`));
+});
